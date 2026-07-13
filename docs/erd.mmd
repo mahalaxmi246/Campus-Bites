@@ -1,0 +1,72 @@
+---
+
+##  ER Diagram (mermaid source — paste into any mermaid renderer, or keep as docs/erd.mmd)
+
+```mermaid
+erDiagram
+  CANTEENS ||--o{ MENU_ITEMS : offers
+  CANTEENS ||--o{ ORDERS : receives
+  USERS ||--o{ ORDERS : places
+  ORDERS ||--o{ ORDER_ITEMS : contains
+  MENU_ITEMS ||--o{ ORDER_ITEMS : referenced_in
+
+  USERS {
+    int id PK
+    string full_name
+    string username UK
+    string email UK
+    string password_hash
+    string role "student | staff | admin"
+    timestamp created_at
+  }
+
+  CANTEENS {
+    int id PK
+    string name
+    string location
+    boolean is_active
+    timestamp created_at
+  }
+
+  MENU_ITEMS {
+    int id PK
+    int canteen_id FK
+    string name
+    string description
+    decimal price
+    string category "snacks | meals | drinks"
+    boolean is_available
+    timestamp created_at
+  }
+
+  ORDERS {
+    int id PK
+    int user_id FK
+    int canteen_id FK
+    int token_number
+    string status "placed | preparing | ready"
+    decimal subtotal
+    decimal handling_fee
+    decimal total_amount
+    timestamp created_at
+  }
+
+  ORDER_ITEMS {
+    int id PK
+    int order_id FK
+    int menu_item_id FK
+    string item_name_snapshot
+    decimal price_snapshot
+    int quantity
+    decimal subtotal
+  }
+```
+
+### Design notes
+- `order_items` snapshots `item_name_snapshot` / `price_snapshot` at order time — order history must never change retroactively if a menu item's price or name changes later.
+- `orders.canteen_id` exists from Day 1 even though Phase 1 runs effectively one canteen — this makes Phase 3's multi-canteen work additive rather than a schema migration.
+- `token_number` is a plain sequential int for now. Per-canteen-per-day reset logic is explicitly out of scope until Phase 3 (see NFR/FR16 in the roadmap) — don't build it early, it'll just be extra surface area to re-test later.
+- Indexes to add when you write the Alembic migration (Day 3–4): unique on `users.username`, unique on `users.email`, index on `menu_items(canteen_id, category)`, index on `orders(canteen_id, status)`, index on `orders(user_id)`, index on `order_items(order_id)`.
+- No `carts` table — cart lives entirely in frontend state (Zustand/Context) per FR6/NFR6. Only the price gets re-validated server-side at order time. Don't persist cart server-side in Phase 1; it's unnecessary complexity for a single-session flow.
+
+---
