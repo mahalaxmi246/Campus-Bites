@@ -10,6 +10,7 @@ from app.core.database import Base
 
 if TYPE_CHECKING:
     from app.models.order import Order
+    from app.models.refresh_token import RefreshToken
 
 
 class UserRole(str, enum.Enum):
@@ -32,3 +33,4 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=func.now(), nullable=False)
 
     orders: Mapped[list["Order"]] = relationship(back_populates="user")
+    refresh_tokens: Mapped[list["RefreshToken"]] = relationship(back_populates="user")
