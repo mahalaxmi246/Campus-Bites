@@ -58,10 +58,3 @@ erDiagram
   }
 ```
 
-### Design notes
-
-- `order_items` snapshots `item_name_snapshot` / `price_snapshot` at order time.
-- `orders.canteen_id` exists from Day 1 for future multi-canteen support.
-- `token_number` is a simple sequential integer for Phase 1.
-- Add indexes later in the Alembic migration.
-- No `carts` table in Phase 1.
