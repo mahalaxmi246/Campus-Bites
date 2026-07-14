@@ -1,11 +1,15 @@
 import enum
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Enum, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from app.core.database import Base
+
+if TYPE_CHECKING:
+    from app.models.order import Order
 
 
 class UserRole(str, enum.Enum):
@@ -26,3 +30,5 @@ class User(Base):
         Enum(UserRole, native_enum=False, length=20), default=UserRole.student, nullable=False
     )
     created_at: Mapped[datetime] = mapped_column(server_default=func.now(), nullable=False)
+
+    orders: Mapped[list["Order"]] = relationship(back_populates="user")
