@@ -4,10 +4,11 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.models import User
-from app.schemas.auth import LoginRequest, RefreshRequest, TokenResponse
+from app.schemas.auth import ChangePasswordRequest, LoginRequest, RefreshRequest, TokenResponse
 from app.schemas.user import UserRegisterRequest, UserResponse
 from app.services.auth_service import (
     authenticate_user,
+    change_password,
     issue_tokens_for_user,
     refresh_access_token,
     revoke_all_refresh_tokens,
@@ -41,3 +42,15 @@ def logout(
     current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ) -> None:
     revoke_all_refresh_tokens(db, current_user.id)
+
+
+@router.post("/change-password", response_model=TokenResponse)
+def change_password_route(
+    data: ChangePasswordRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> TokenResponse:
+    access_token, refresh_token = change_password(
+        db, current_user, data.current_password, data.new_password
+    )
+    return TokenResponse(access_token=access_token, refresh_token=refresh_token)

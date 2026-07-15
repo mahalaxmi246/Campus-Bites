@@ -7,6 +7,7 @@ from app.core.exceptions import AppError
 from app.core.security import (
     create_access_token,
     generate_refresh_token,
+    hash_password,
     hash_refresh_token,
     verify_password,
 )
@@ -99,3 +100,41 @@ def revoke_all_refresh_tokens(db: Session, user_id: int) -> None:
         RefreshToken.user_id == user_id, RefreshToken.revoked.is_(False)
     ).update({"revoked": True})
     db.commit()
+
+def change_password(
+    db: Session, user: User, current_password: str, new_password: str
+) -> tuple[str, str]:
+    """
+    Requires the CURRENT password (not admin-bypassable) — this is
+    self-service, not account recovery. Full forgot-password (for someone
+    who's genuinely lost access) needs an email service and is deferred;
+    see conversation notes. This alone already solves the "admin assigned
+    everyone the same initial password" risk, since staff can immediately
+    set something only they know.
+
+    Revokes every other active session on success — if the old password
+    had leaked or been shared, this is the point that exposure ends. The
+    CURRENT session gets a fresh token pair below so this device doesn't
+    get logged out too.
+    """
+    if not verify_password(current_password, user.password_hash):
+        raise AppError(
+            code="INVALID_CREDENTIALS",
+            message="Current password is incorrect",
+            status_code=401,
+        )
+
+    user.password_hash = hash_password(new_password)
+    db.add(user)
+
+    db.query(RefreshToken).filter(
+        RefreshToken.user_id == user.id, RefreshToken.revoked.is_(False)
+    ).update({"revoked": True})
+
+    access_token = create_access_token(
+        subject=str(user.id),
+        extra_claims={"role": user.role.value, "username": user.username},
+    )
+    new_refresh_token = _create_refresh_token_row(db, user.id)
+    db.commit()
+    return access_token, new_refresh_token
