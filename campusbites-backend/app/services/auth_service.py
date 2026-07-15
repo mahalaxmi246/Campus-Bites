@@ -83,3 +83,19 @@ def refresh_access_token(db: Session, raw_refresh_token: str) -> tuple[str, str]
     new_refresh_token = _create_refresh_token_row(db, user.id)
     db.commit()
     return access_token, new_refresh_token
+
+def revoke_all_refresh_tokens(db: Session, user_id: int) -> None:
+    """
+    "Logout." Note this only revokes refresh tokens — the current access
+    token stays technically valid until it naturally expires (it's a
+    stateless JWT, minutes-lived by design). This is the standard, accepted
+    tradeoff of the access+refresh pattern: true instant-everywhere
+    revocation of access tokens would require checking a blacklist on every
+    single request, which defeats the point of using stateless JWTs at all.
+    Keeping ACCESS_TOKEN_EXPIRE_MINUTES short (15 min, per .env) is what
+    bounds the actual exposure window.
+    """
+    db.query(RefreshToken).filter(
+        RefreshToken.user_id == user_id, RefreshToken.revoked.is_(False)
+    ).update({"revoked": True})
+    db.commit()
