@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.core.exceptions import AppError, app_error_handler
-from app.routers import auth
+from app.routers import auth, menu
 
 app = FastAPI(title=settings.app_name)
 
@@ -18,7 +18,8 @@ app.add_middleware(
 app.add_exception_handler(AppError, app_error_handler)
 
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
-# More routers get included here starting Day 9+ (menu, orders, ...)
+app.include_router(menu.router, prefix="/api/v1/menu", tags=["menu"])
+# More routers get included here starting Week 5+ (orders, ...)
 
 
 @app.get("/")
@@ -28,5 +29,4 @@ def root():
 
 @app.get("/health")
 def health():
-    """Liveness check. A proper /ready (DB connectivity check) lands in Phase 2 (FR14)."""
     return {"status": "ok"}
