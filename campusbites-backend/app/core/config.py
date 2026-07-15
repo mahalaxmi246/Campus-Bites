@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     app_name: str = "CampusBites API"
     environment: str = "development"
     cors_origins: list[str] = ["http://localhost:5173"]
+    handling_fee: float = 5.0
 
     @property
     def database_url(self) -> str:
