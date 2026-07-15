@@ -1,13 +1,30 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.dependencies import require_role
 from app.models import User, UserRole
 from app.schemas.menu import MenuItemCreateRequest, MenuItemResponse, MenuItemUpdateRequest
-from app.services.menu_service import create_menu_item, delete_menu_item, update_menu_item
+from app.services.menu_service import (
+    create_menu_item,
+    delete_menu_item,
+    list_menu_items,
+    update_menu_item,
+)
 
 router = APIRouter()
+
+
+@router.get("", response_model=list[MenuItemResponse])
+def list_items(
+    canteen_id: int | None = Query(default=None),
+    category: str | None = Query(default=None),
+    include_unavailable: bool = Query(default=False),
+    db: Session = Depends(get_db),
+) -> list[MenuItemResponse]:
+    return list_menu_items(
+        db, canteen_id=canteen_id, category=category, include_unavailable=include_unavailable
+    )
 
 
 @router.post("", response_model=MenuItemResponse, status_code=status.HTTP_201_CREATED)

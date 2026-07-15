@@ -61,3 +61,27 @@ def delete_menu_item(db: Session, item_id: int) -> None:
     item = get_menu_item_or_404(db, item_id)
     item.is_available = False
     db.commit()
+
+def list_menu_items(
+    db: Session,
+    canteen_id: int | None = None,
+    category: str | None = None,
+    include_unavailable: bool = False,
+) -> list[MenuItem]:
+    """
+    Public browse endpoint's query. Defaults to available items only —
+    that's the customer-facing "what can I actually order right now" view.
+    include_unavailable=True is for the staff "manage menu" page (Week 3,
+    Day 5), which needs to see 86'd/discontinued items too so staff can
+    toggle them back on. Not role-gated: menu items carry no sensitive
+    data, so there's no real harm in anyone passing this flag — keeping
+    the route simple and fully public, matching the Day 1 API contract.
+    """
+    query = db.query(MenuItem)
+    if canteen_id is not None:
+        query = query.filter(MenuItem.canteen_id == canteen_id)
+    if category is not None:
+        query = query.filter(MenuItem.category == category)
+    if not include_unavailable:
+        query = query.filter(MenuItem.is_available.is_(True))
+    return query.order_by(MenuItem.category, MenuItem.name).all()
