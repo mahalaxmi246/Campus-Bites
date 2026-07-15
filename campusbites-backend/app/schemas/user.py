@@ -18,3 +18,13 @@ class UserResponse(BaseModel):
     username: str
     email: str
     role: UserRole
+
+class StaffCreateRequest(UserRegisterRequest):
+    """
+    Same shape as UserRegisterRequest today, but kept as a distinct schema
+    on purpose — this is an admin-provisioning action, not self-registration,
+    and the two may need to diverge later (e.g. assigning a canteen to
+    staff in Phase 3) without touching public registration's contract.
+    """
+
+    pass
