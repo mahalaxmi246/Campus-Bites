@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
 import { apiRequest } from "../api/client";
+import { decodeAccessToken } from "../utils/jwt";
 
 interface TokenPair {
   access_token: string;
@@ -14,9 +15,13 @@ interface RegisterInput {
   password: string;
 }
 
+type Role = "student" | "staff" | "admin";
+
 interface AuthContextValue {
   accessToken: string | null;
   isAuthenticated: boolean;
+  role: Role | null;
+  username: string | null;
   login: (username: string, password: string) => Promise<void>;
   register: (data: RegisterInput) => Promise<void>;
   logout: () => Promise<void>;
@@ -78,9 +83,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const claims = accessToken ? decodeAccessToken(accessToken) : null;
+
   const value: AuthContextValue = {
     accessToken,
     isAuthenticated: accessToken !== null,
+    role: claims?.role ?? null,
+    username: claims?.username ?? null,
     login,
     register,
     logout,
