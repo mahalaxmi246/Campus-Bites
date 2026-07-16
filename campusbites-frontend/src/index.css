@@ -192,3 +192,118 @@ body {
   font-weight: 700;
   color: #ea580c;
 }
+
+.staff-menu-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.staff-menu-form {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.staff-menu-form h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.staff-menu-form input,
+.staff-menu-form select {
+  padding: 0.6rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.form-row input,
+.form-row select {
+  flex: 1;
+}
+
+.staff-menu-form button[type="submit"] {
+  align-self: flex-start;
+  padding: 0.6rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  background: #ea580c;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.staff-menu-form button[type="submit"]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.staff-menu-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.staff-menu-table th,
+.staff-menu-table td {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.staff-menu-table th {
+  background: #fafafa;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  color: #666;
+}
+
+.status-badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.status-badge.available {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-badge.unavailable {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.staff-menu-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.staff-menu-actions button {
+  padding: 0.35rem 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.staff-menu-actions button.danger {
+  border-color: #fca5a5;
+  color: #991b1b;
+}
