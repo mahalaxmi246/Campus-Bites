@@ -11,9 +11,9 @@ running app a user or the roadmap's other endpoints touch.
 from fastapi import Depends
 
 from app.core.dependencies import require_role
-from app.core.security import create_access_token
 from app.main import app
 from app.models import User, UserRole
+from tests.conftest import token_for
 
 
 @app.get("/api/v1/_test/admin-only")
@@ -26,13 +26,6 @@ def _staff_or_admin_route(
     user: User = Depends(require_role(UserRole.staff, UserRole.admin)),
 ):
     return {"ok": True, "as": user.username}
-
-
-def _token_for(user: User) -> str:
-    return create_access_token(
-        subject=str(user.id),
-        extra_claims={"role": user.role.value, "username": user.username},
-    )
 
 
 # --- Authentication boundary (401): no/bad token never reaches the role check ---
@@ -52,43 +45,43 @@ def test_garbage_token_returns_401(client, seeded_users):
 # --- Single-role boundary (admin-only route) ---
 
 def test_student_forbidden_from_admin_only(client, seeded_users):
-    token = _token_for(seeded_users["student"])
+    token = token_for(seeded_users["student"])
     r = client.get("/api/v1/_test/admin-only", headers={"Authorization": f"Bearer {token}"})
     assert r.status_code == 403
     assert r.json()["error"]["code"] == "FORBIDDEN"
 
 
 def test_staff_forbidden_from_admin_only(client, seeded_users):
-    token = _token_for(seeded_users["staff"])
+    token = token_for(seeded_users["staff"])
     r = client.get("/api/v1/_test/admin-only", headers={"Authorization": f"Bearer {token}"})
     assert r.status_code == 403
     assert r.json()["error"]["code"] == "FORBIDDEN"
 
 
 def test_admin_allowed_on_admin_only(client, seeded_users):
-    token = _token_for(seeded_users["admin"])
+    token = token_for(seeded_users["admin"])
     r = client.get("/api/v1/_test/admin-only", headers={"Authorization": f"Bearer {token}"})
     assert r.status_code == 200
-    assert r.json() == {"ok": True, "as": "rbac_admin"}
+    assert r.json() == {"ok": True, "as": "test_admin"}
 
 
 # --- Multi-role boundary (staff-or-admin route) ---
 
 def test_student_forbidden_on_multi_role_route(client, seeded_users):
-    token = _token_for(seeded_users["student"])
+    token = token_for(seeded_users["student"])
     r = client.get("/api/v1/_test/staff-or-admin", headers={"Authorization": f"Bearer {token}"})
     assert r.status_code == 403
 
 
 def test_staff_allowed_on_multi_role_route(client, seeded_users):
-    token = _token_for(seeded_users["staff"])
+    token = token_for(seeded_users["staff"])
     r = client.get("/api/v1/_test/staff-or-admin", headers={"Authorization": f"Bearer {token}"})
     assert r.status_code == 200
-    assert r.json()["as"] == "rbac_staff"
+    assert r.json()["as"] == "test_staff"
 
 
 def test_admin_allowed_on_multi_role_route(client, seeded_users):
-    token = _token_for(seeded_users["admin"])
+    token = token_for(seeded_users["admin"])
     r = client.get("/api/v1/_test/staff-or-admin", headers={"Authorization": f"Bearer {token}"})
     assert r.status_code == 200
-    assert r.json()["as"] == "rbac_admin"
+    assert r.json()["as"] == "test_admin"

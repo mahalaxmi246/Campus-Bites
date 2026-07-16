@@ -5,9 +5,9 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.core.database import Base, get_db
-from app.core.security import hash_password
+from app.core.security import create_access_token, hash_password
 from app.main import app
-from app.models import User, UserRole
+from app.models import Canteen, MenuItem, User, UserRole
 
 
 @pytest.fixture()
@@ -53,15 +53,15 @@ def seeded_users(db_session) -> dict[str, User]:
     """One user per role, for RBAC boundary testing."""
     users = {
         "student": User(
-            full_name="RBAC Student", username="rbac_student", email="rbac_student@gmail.com",
+            full_name="Test Student", username="test_student", email="test_student@gmail.com",
             password_hash=hash_password("Pass@123"), role=UserRole.student,
         ),
         "staff": User(
-            full_name="RBAC Staff", username="rbac_staff", email="rbac_staff@gmail.com",
+            full_name="Test Staff", username="test_staff", email="test_staff@gmail.com",
             password_hash=hash_password("Pass@123"), role=UserRole.staff,
         ),
         "admin": User(
-            full_name="RBAC Admin", username="rbac_admin", email="rbac_admin@gmail.com",
+            full_name="Test Admin", username="test_admin", email="test_admin@gmail.com",
             password_hash=hash_password("Pass@123"), role=UserRole.admin,
         ),
     }
@@ -70,3 +70,46 @@ def seeded_users(db_session) -> dict[str, User]:
     for user in users.values():
         db_session.refresh(user)
     return users
+
+
+@pytest.fixture()
+def seeded_canteen(db_session) -> Canteen:
+    canteen = Canteen(name="Main Canteen", location="Block A")
+    db_session.add(canteen)
+    db_session.commit()
+    db_session.refresh(canteen)
+    return canteen
+
+
+@pytest.fixture()
+def seeded_menu_items(db_session, seeded_canteen) -> dict[str, MenuItem]:
+    """A small menu, including one already-unavailable (86'd) item —
+    needed to test the browse endpoint's default filtering behavior."""
+    items = {
+        "fries": MenuItem(
+            canteen_id=seeded_canteen.id, name="French Fries", price=30, category="snacks"
+        ),
+        "thali": MenuItem(
+            canteen_id=seeded_canteen.id, name="Veg Thali", price=80, category="meals"
+        ),
+        "tea": MenuItem(canteen_id=seeded_canteen.id, name="Tea", price=10, category="drinks"),
+        "discontinued": MenuItem(
+            canteen_id=seeded_canteen.id, name="Discontinued Item", price=99,
+            category="snacks", is_available=False,
+        ),
+    }
+    db_session.add_all(items.values())
+    db_session.commit()
+    for item in items.values():
+        db_session.refresh(item)
+    return items
+
+
+def token_for(user: User) -> str:
+    """Shared helper — generates a valid access token for a seeded user
+    directly (no need to hit /auth/login in every test that just needs
+    an authenticated request)."""
+    return create_access_token(
+        subject=str(user.id),
+        extra_claims={"role": user.role.value, "username": user.username},
+    )
