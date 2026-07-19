@@ -1,7 +1,8 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { selectSubtotal, useCartStore } from "../store/cartStore";
 
 export function CartPage() {
+  const navigate = useNavigate();
   const items = useCartStore((state) => state.items);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
@@ -52,8 +53,7 @@ export function CartPage() {
         <p className="cart-summary-note">
           Handling fee and final total are calculated at checkout.
         </p>
-        {/* Checkout wiring (backend price validation, order placement) lands Week 4/5 */}
-        <button className="checkout-btn" disabled>
+        <button className="checkout-btn" onClick={() => navigate("/checkout")}>
           Proceed to Checkout
         </button>
       </div>

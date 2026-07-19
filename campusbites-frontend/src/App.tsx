@@ -3,6 +3,7 @@ import { Navbar } from "./components/Navbar";
 import { RequireRole } from "./components/RequireRole";
 import { AuthProvider } from "./context/AuthContext";
 import { CartPage } from "./pages/CartPage";
+import { CheckoutPage } from "./pages/CheckoutPage";
 import { LoginPage } from "./pages/LoginPage";
 import { MenuPage } from "./pages/MenuPage";
 import { RegisterPage } from "./pages/RegisterPage";
@@ -16,11 +17,9 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          {/* Menu browsing is public — matches the backend's GET /menu
-              being unauthenticated. Login is only required at checkout
-              (Week 4/5), not to browse. */}
           <Route path="/" element={<MenuPage />} />
           <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
           <Route
             path="/staff/menu"
             element={

@@ -62,3 +62,14 @@ export const useCartStore = create<CartState>()(
     }
   )
 );
+
+// Derived values are kept as plain functions, not store state — they're
+// recomputed from `items` on every call, so they can never go stale the
+// way a manually-maintained "subtotal" field in the store could.
+export function selectSubtotal(items: CartItem[]): number {
+  return items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+}
+
+export function selectItemCount(items: CartItem[]): number {
+  return items.reduce((sum, i) => sum + i.quantity, 0);
+}

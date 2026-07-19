@@ -440,3 +440,47 @@ body {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.checkout-page {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.checkout-page h1 {
+  color: #ea580c;
+  margin-bottom: 0.25rem;
+}
+
+.checkout-items {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+}
+
+.checkout-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.checkout-item:last-child {
+  border-bottom: none;
+}
+
+.checkout-item-qty {
+  color: #999;
+  font-size: 0.85rem;
+}
+
+.checkout-back-link {
+  display: block;
+  text-align: center;
+  margin-top: 0.75rem;
+  color: #ea580c;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
