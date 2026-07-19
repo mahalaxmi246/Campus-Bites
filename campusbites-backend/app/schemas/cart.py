@@ -12,6 +12,10 @@ class CartItemInput(BaseModel):
     quantity: int = Field(gt=0, le=50)  # sane upper bound against garbage/malicious quantities
 
 
+class CartValidationRequest(BaseModel):
+    items: list[CartItemInput]
+
+
 class ValidatedCartItem(BaseModel):
     menu_item_id: int
     name: str
