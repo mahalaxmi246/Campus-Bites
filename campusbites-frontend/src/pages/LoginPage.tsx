@@ -1,16 +1,24 @@
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { ApiError } from "../api/client";
 
 export function LoginPage() {
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // QA finding (Week 4, Day 6): without this, an already-logged-in user
+  // could manually visit /login and authenticate as someone else mid
+  // session — swapping tokens without ever going through logout(), which
+  // is the only place the cart gets cleared. This closes that path.
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();

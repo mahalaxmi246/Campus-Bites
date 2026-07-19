@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
 import { apiRequest } from "../api/client";
+import { useCartStore } from "../store/cartStore";
 import { decodeAccessToken } from "../utils/jwt";
 
 interface TokenPair {
@@ -61,6 +62,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       body: { username, password },
     });
     storeTokens(tokens);
+    // Deliberately NOT clearing the cart here. The most common real flow
+    // is: anonymous visitor adds items -> clicks checkout -> bounced to
+    // /login -> logs in -> expects their cart to still be there. Wiping
+    // it on login would silently break that.
   }
 
   async function register(data: RegisterInput) {
@@ -73,6 +78,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function logout() {
     const token = accessToken;
     clearTokens(); // clear client-side state immediately, regardless of network outcome
+
+    // QA finding (Week 4, Day 6): the cart is a single global localStorage
+    // key, not scoped per user. On a shared computer — realistic for a
+    // canteen app — the next student to log in would otherwise see the
+    // previous student's leftover cart. Logout is the one point where we
+    // definitively know "this session is over," so it's the right place
+    // to clear it (login is deliberately NOT, see login() above).
+    useCartStore.getState().clearCart();
+
     if (token) {
       try {
         await apiRequest("/auth/logout", { method: "POST", token });

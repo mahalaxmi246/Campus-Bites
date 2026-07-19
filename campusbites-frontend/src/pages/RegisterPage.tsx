@@ -1,10 +1,10 @@
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { ApiError } from "../api/client";
 
 export function RegisterPage() {
-  const { register } = useAuth();
+  const { register, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const [fullName, setFullName] = useState("");
@@ -13,6 +13,12 @@ export function RegisterPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Same reasoning as LoginPage: an already-authenticated user shouldn't
+  // land on the registration form.
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -36,7 +42,12 @@ export function RegisterPage() {
         {error && <p className="auth-error">{error}</p>}
 
         <label htmlFor="fullName">Full name</label>
-        <input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+        <input
+          id="fullName"
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+          required
+        />
 
         <label htmlFor="username">Username</label>
         <input
