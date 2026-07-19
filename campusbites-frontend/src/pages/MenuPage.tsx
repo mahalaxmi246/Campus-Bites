@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ApiError } from "../api/client";
 import { getMenu, type MenuItem } from "../api/menu";
+import { useCartStore } from "../store/cartStore";
 
 const CATEGORIES = [
   { value: "all", label: "All" },
@@ -15,10 +16,11 @@ export function MenuPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const cartItems = useCartStore((state) => state.items);
+  const addItem = useCartStore((state) => state.addItem);
+  const updateQuantity = useCartStore((state) => state.updateQuantity);
+
   useEffect(() => {
-    // Guards against a race: if the user switches categories again before
-    // the previous fetch resolves, that stale response must not overwrite
-    // the newer one that (maybe) already landed.
     let cancelled = false;
     setIsLoading(true);
     setError(null);
@@ -42,6 +44,10 @@ export function MenuPage() {
       cancelled = true;
     };
   }, [activeCategory]);
+
+  function quantityInCart(menuItemId: number): number {
+    return cartItems.find((i) => i.menuItemId === menuItemId)?.quantity ?? 0;
+  }
 
   return (
     <div className="menu-page">
@@ -69,16 +75,34 @@ export function MenuPage() {
       )}
 
       <div className="menu-grid">
-        {items.map((item) => (
-          <div key={item.id} className="menu-card">
-            <h3>{item.name}</h3>
-            {item.description && <p className="menu-card-desc">{item.description}</p>}
-            <div className="menu-card-footer">
-              <span className="menu-card-price">Rs.{item.price}</span>
-              {/* Add-to-cart button lands Week 4 */}
+        {items.map((item) => {
+          const qty = quantityInCart(item.id);
+          return (
+            <div key={item.id} className="menu-card">
+              <h3>{item.name}</h3>
+              {item.description && <p className="menu-card-desc">{item.description}</p>}
+              <div className="menu-card-footer">
+                <span className="menu-card-price">Rs.{item.price}</span>
+                {qty === 0 ? (
+                  <button
+                    className="add-to-cart-btn"
+                    onClick={() =>
+                      addItem({ menuItemId: item.id, name: item.name, price: item.price })
+                    }
+                  >
+                    Add +
+                  </button>
+                ) : (
+                  <div className="qty-stepper">
+                    <button onClick={() => updateQuantity(item.id, qty - 1)}>-</button>
+                    <span>{qty}</span>
+                    <button onClick={() => updateQuantity(item.id, qty + 1)}>+</button>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
