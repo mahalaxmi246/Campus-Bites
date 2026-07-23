@@ -7,7 +7,7 @@ from sqlalchemy.pool import StaticPool
 from app.core.database import Base, get_db
 from app.core.security import create_access_token, hash_password
 from app.main import app
-from app.models import Canteen, MenuItem, User, UserRole
+from app.models import Canteen, MenuItem, User, UserRole, TokenCounter
 
 
 @pytest.fixture()
@@ -113,3 +113,13 @@ def token_for(user: User) -> str:
         subject=str(user.id),
         extra_claims={"role": user.role.value, "username": user.username},
     )
+
+@pytest.fixture()
+def seeded_token_counter(db_session) -> TokenCounter:
+    """Mirrors what Alembic migration 004 seeds in real MySQL — order
+    placement needs this row to exist before any order can be placed."""
+    counter = TokenCounter(id=1, next_token=1)
+    db_session.add(counter)
+    db_session.commit()
+    db_session.refresh(counter)
+    return counter
