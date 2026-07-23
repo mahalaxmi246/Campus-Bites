@@ -5,7 +5,7 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.models import User
 from app.schemas.order import OrderCreateRequest, OrderResponse
-from app.services.order_service import place_order
+from app.services.order_service import get_order_by_id, place_order
 
 router = APIRouter()
 
@@ -23,3 +23,12 @@ def create_order(
     security or business reason behind it.
     """
     return place_order(db, current_user, data.canteen_id, data.items)
+
+
+@router.get("/{order_id}", response_model=OrderResponse)
+def get_order(
+    order_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> OrderResponse:
+    return get_order_by_id(db, order_id, current_user)

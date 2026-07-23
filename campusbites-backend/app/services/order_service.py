@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import AppError
-from app.models import Canteen, Order, OrderItem, OrderStatus, User
+from app.models import Canteen, Order, OrderItem, OrderStatus, User, UserRole
 from app.schemas.cart import CartItemInput
 from app.services.pricing_service import validate_cart
 from app.services.token_service import get_next_token_number
@@ -58,4 +58,25 @@ def place_order(
 
     db.commit()
     db.refresh(order)
+    return order
+
+def get_order_by_id(db: Session, order_id: int, current_user: User) -> Order:
+    """
+    Used for the confirmation screen (right after placing an order, or on
+    a page refresh) and later for order-status polling/tracking (Week 6+).
+
+    Access rule: the order's owner, or any staff/admin, can view it — staff
+    need this for the incoming-orders dashboard (Week 7). Anyone else gets
+    404, not 403: deliberately not distinguishing "doesn't exist" from
+    "exists but isn't yours," same anti-enumeration reasoning as login
+    (Week 2, Day 1) — a 403 would confirm to a student that order #47
+    belongs to *someone*, which they have no need to know.
+    """
+    order = db.query(Order).filter(Order.id == order_id).first()
+    is_owner = order is not None and order.user_id == current_user.id
+    is_staff_or_admin = current_user.role in (UserRole.staff, UserRole.admin)
+
+    if order is None or not (is_owner or is_staff_or_admin):
+        raise AppError(code="ORDER_NOT_FOUND", message="Order not found", status_code=404)
+
     return order
