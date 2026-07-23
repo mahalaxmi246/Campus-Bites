@@ -1,10 +1,10 @@
-from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import AppError
 from app.models import Canteen, Order, OrderItem, OrderStatus, User
 from app.schemas.cart import CartItemInput
 from app.services.pricing_service import validate_cart
+from app.services.token_service import get_next_token_number
 
 
 def place_order(
@@ -22,10 +22,6 @@ def place_order(
     Reuses validate_cart (Week 3 Day 3 / Week 4 Day 5) completely unchanged
     — this IS the actual charge, not a preview, but the pricing logic is
     identical on purpose (NFR6: exactly one place pricing math can be wrong).
-
-    Token number generation here is deliberately the simplest possible
-    thing (global max+1) — Week 5 Day 2 hardens this against two students
-    checking out at the same instant; don't treat today's number as final.
     """
     canteen = db.query(Canteen).filter(Canteen.id == canteen_id).first()
     if canteen is None:
@@ -34,9 +30,7 @@ def place_order(
         )
 
     validated = validate_cart(db, items)
-
-    last_token = db.query(func.max(Order.token_number)).scalar() or 0
-    token_number = last_token + 1
+    token_number = get_next_token_number(db)
 
     order = Order(
         user_id=user.id,

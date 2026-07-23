@@ -28,7 +28,7 @@ class Order(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
     canteen_id: Mapped[int] = mapped_column(ForeignKey("canteens.id"), nullable=False, index=True)
-    token_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    token_number: Mapped[int] = mapped_column(Integer, nullable=False, unique=True)
     status: Mapped[OrderStatus] = mapped_column(
         Enum(OrderStatus, native_enum=False, length=20),
         default=OrderStatus.placed,
