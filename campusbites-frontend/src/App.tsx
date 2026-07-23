@@ -6,6 +6,7 @@ import { CartPage } from "./pages/CartPage";
 import { CheckoutPage } from "./pages/CheckoutPage";
 import { LoginPage } from "./pages/LoginPage";
 import { MenuPage } from "./pages/MenuPage";
+import { OrderConfirmationPage } from "./pages/OrderConfirmationPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { StaffMenuPage } from "./pages/StaffMenuPage";
 
@@ -20,6 +21,7 @@ export default function App() {
           <Route path="/" element={<MenuPage />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/orders/:orderId/confirmation" element={<OrderConfirmationPage />} />
           <Route
             path="/staff/menu"
             element={
